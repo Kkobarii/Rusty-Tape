@@ -8,18 +8,6 @@ pub enum Op {
     Div,
 }
 
-impl Op {
-    pub fn from_string(s: &str) -> Result<Self, String> {
-        match s.trim() {
-            "+" => Ok(Op::Add),
-            "-" => Ok(Op::Sub),
-            "*" => Ok(Op::Mul),
-            "/" => Ok(Op::Div),
-            _ => Err(format!("Invalid operation: {}", s)),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Rel {
     Lt,
@@ -30,24 +18,10 @@ pub enum Rel {
     Ne,
 }
 
-impl Rel {
-    pub fn from_string(s: &str) -> Result<Self, String> {
-        match s.trim() {
-            "<" => Ok(Rel::Lt),
-            ">" => Ok(Rel::Gt),
-            "<=" => Ok(Rel::Le),
-            ">=" => Ok(Rel::Ge),
-            "==" => Ok(Rel::Eq),
-            "!=" => Ok(Rel::Ne),
-            _ => Err(format!("Invalid relation: {}", s)),
-        }
-    }
-}
-
 pub type Register = usize;
 pub type Value = i32;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
     pub label: Option<String>,
     pub op: InstructionOp,
@@ -69,7 +43,7 @@ impl Instruction {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum InstructionOp {
     AssignFromConst(Register, Value),
     AssignFromRegister(Register, Register),
@@ -85,6 +59,7 @@ pub enum InstructionOp {
     Halt,
 }
 
+#[derive(Debug)]
 pub struct RamMachine {
     memory: HashMap<Register, Value>,
     registers: Vec<Value>,
@@ -155,6 +130,10 @@ impl RamMachine {
 
     pub fn get_output(&self) -> &Vec<Value> {
         &self.output_tape
+    }
+    
+    pub fn get_program(&self) -> &Vec<Instruction> {
+        &self.program
     }
     
     // fn read_input(&mut self) -> Result<Value, String> {
@@ -259,7 +238,9 @@ impl RamMachine {
                     return Err(format!("Label {} not found", label))
                 }
             }
+            // halt
             InstructionOp::Halt => return Ok(true),
+            // Ri := read()
             InstructionOp::Read(reg) => {
                 if self.input_tape.is_empty() {
                     return Err("The input tape is empty".to_string())
@@ -267,6 +248,7 @@ impl RamMachine {
                 let val = self.input_tape.remove(0);
                 self.set_register(*reg, val);
             }
+            // write(Ri)
             InstructionOp::Write(reg) => {
                 self.output_tape.push(self.get_register(*reg));
             }

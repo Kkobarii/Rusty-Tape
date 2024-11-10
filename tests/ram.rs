@@ -1,28 +1,8 @@
 
 #[cfg(test)]
-mod tests {
+mod ram_tests {
     use rusty_tape::ram::{Op, Rel, RamMachine, Instruction};
     use rusty_tape::ram::InstructionOp::{ArithmeticRegOpConst, ArithmeticRegOpReg, AssignFromConst, AssignFromRegister, CondJumpRegRelConst, CondJumpRegRelReg, Halt, Jump, Load, Read, Store, Write};
-
-    #[test]
-    fn test_op_from_string() {
-        assert_eq!(Op::from_string("+").unwrap(), Op::Add);
-        assert_eq!(Op::from_string("-").unwrap(), Op::Sub);
-        assert_eq!(Op::from_string("*").unwrap(), Op::Mul);
-        assert_eq!(Op::from_string("/").unwrap(), Op::Div);
-        assert!(Op::from_string("%").is_err());
-    }
-
-    #[test]
-    fn test_rel_from_string() {
-        assert_eq!(Rel::from_string("<").unwrap(), Rel::Lt);
-        assert_eq!(Rel::from_string(">").unwrap(), Rel::Gt);
-        assert_eq!(Rel::from_string("<=").unwrap(), Rel::Le);
-        assert_eq!(Rel::from_string(">=").unwrap(), Rel::Ge);
-        assert_eq!(Rel::from_string("==").unwrap(), Rel::Eq);
-        assert_eq!(Rel::from_string("!=").unwrap(), Rel::Ne);
-        assert!(Rel::from_string("=<").is_err());
-    }
 
     #[test]
     fn test_assign_from_const() {

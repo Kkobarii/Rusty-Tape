@@ -1,0 +1,13 @@
+         R0 := 0  # counter
+
+loop:    if (R0 >= 4) goto end
+         R1 := R0 / 2
+         if (R1 != 0) goto skip
+         R2 := read()
+         R2 := R2 * 10
+         write(R2)
+ 
+skip:    R0 := R0 + 1
+         goto loop
+
+end:     halt
