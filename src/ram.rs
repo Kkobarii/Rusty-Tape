@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Display;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Op {
@@ -16,6 +17,30 @@ pub enum Rel {
     Ge,
     Eq,
     Ne,
+}
+
+impl Display for Op {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Op::Add => write!(f, "+"),
+            Op::Sub => write!(f, "-"),
+            Op::Mul => write!(f, "*"),
+            Op::Div => write!(f, "/"),
+        }
+    }
+}
+
+impl Display for Rel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Rel::Lt => write!(f, "<"),
+            Rel::Gt => write!(f, ">"),
+            Rel::Le => write!(f, "<="),
+            Rel::Ge => write!(f, ">="),
+            Rel::Eq => write!(f, "=="),
+            Rel::Ne => write!(f, "!="),
+        }
+    }
 }
 
 pub type Register = usize;
@@ -57,6 +82,37 @@ pub enum InstructionOp {
     Read(Register),
     Write(Register),
     Halt,
+}
+
+impl Display for InstructionOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InstructionOp::AssignFromConst(target, value) =>
+                write!(f, "R{} := {}", target, value),
+            InstructionOp::AssignFromRegister(target, source) =>
+                write!(f, "R{} := R{}", target, source),
+            InstructionOp::Load(target, source) =>
+                write!(f, "R{} := [R{}]", target, source),
+            InstructionOp::Store(target, source) =>
+                write!(f, "[R{}] := R{}", target, source),
+            InstructionOp::ArithmeticRegOpReg(target, source1, op, source2) =>
+                write!(f, "R{} := R{} {} R{}", target, source1, op, source2),
+            InstructionOp::ArithmeticRegOpConst(target, source, op, value) =>
+                write!(f, "R{} := R{} {} {}", target, source, op, value),
+            InstructionOp::Jump(label) =>
+                write!(f, "goto {}", label),
+            InstructionOp::CondJumpRegRelReg(reg1, rel, reg2, label) =>
+                write!(f, "if (R{} {} R{}) goto {}", reg1, rel, reg2, label),
+            InstructionOp::CondJumpRegRelConst(reg, rel, value, label) =>
+                write!(f, "if (R{} {} {}) goto {}", reg, rel, value, label),
+            InstructionOp::Read(reg) =>
+                write!(f, "R{} := read()", reg),
+            InstructionOp::Write(reg) =>
+                write!(f, "write(R{})", reg),
+            InstructionOp::Halt =>
+                write!(f, "halt"),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -128,12 +184,24 @@ impl RamMachine {
         self.memory.insert(reg, value);
     }
 
+    pub fn get_whole_memory(&self) -> &HashMap<Register, Value> {
+        &self.memory
+    }
+
+    pub fn get_input(&self) -> &Vec<Value> {
+        &self.input_tape
+    }
+
     pub fn get_output(&self) -> &Vec<Value> {
         &self.output_tape
     }
     
     pub fn get_program(&self) -> &Vec<Instruction> {
         &self.program
+    }
+
+    pub fn get_instruction_pointer(&self) -> usize {
+        self.instruction_pointer
     }
     
     // fn read_input(&mut self) -> Result<Value, String> {
@@ -176,7 +244,7 @@ impl RamMachine {
         }
     }
 
-    fn step(&mut self) -> Result<bool, String> {
+    pub fn step(&mut self) -> Result<bool, String> {
         if self.instruction_pointer >= self.program.len() {
             return Ok(true);  // end of program
         }

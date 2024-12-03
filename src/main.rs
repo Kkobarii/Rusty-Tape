@@ -1,16 +1,24 @@
 pub mod parser;
 pub mod ram;
+pub mod ui;
 
-use parser::Parser;
+use crate::parser::Parser;
+use crate::ui::UiHandler;
 
 fn main() {
     let filename = "data/read_first_half.ram";
     match Parser::parse_file(filename) {
         Ok(machine) => {
-            println!("\nMachine {filename} parsed successfully:\n{:?}", machine)
+            let mut ui = UiHandler {
+                machine, // Load with a program
+            };
+            ui.run().expect("TODO: panic message");
         }
         Err(message) => {
             println!("\nMachine {filename} failed to parse:\n{message}")
         }
     }
+
+
+    ();
 }
