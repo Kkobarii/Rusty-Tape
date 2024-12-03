@@ -6,11 +6,11 @@ use crate::parser::Parser;
 use crate::ui::UiHandler;
 
 fn main() {
-    let filename = "data/read_first_half.ram";
+    let filename = "data/load_store.ram";
     match Parser::parse_file(filename) {
         Ok(machine) => {
             let mut ui = UiHandler {
-                machine, // Load with a program
+                machine: machine.with_input(vec![1, 2, 3, 4]), // Load with a program
             };
             ui.run().expect("TODO: panic message");
         }

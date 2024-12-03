@@ -250,7 +250,6 @@ impl RamMachine {
         }
 
         let instruction = &self.program[self.instruction_pointer];
-        eprintln!("{:?}", instruction);
         match &instruction.op {
             // Ri ∶= c
             InstructionOp::AssignFromConst(target, value) => {

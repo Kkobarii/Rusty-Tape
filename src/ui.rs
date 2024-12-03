@@ -84,9 +84,8 @@ impl UiHandler {
                         Span::styled(format!("[{}] {}", i, value), style)
                     })
                     .collect();
-                // let memory_block = Paragraph::new(Span::from(memory_items))
-                //     .block(Block::default().borders(Borders::ALL).title("Memory"));
-                // f.render_widget(memory_block, chunks[1]);
+                let memory_block = List::new(memory_items).block(Block::default().borders(Borders::ALL).title("Memory"));
+                f.render_widget(memory_block, chunks[1]);
 
                 // Tape Section
                 let tape_text = format!(
