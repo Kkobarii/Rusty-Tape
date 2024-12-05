@@ -1,3 +1,3 @@
-pub type Register = usize;
-pub type Value = i32;
+pub type Number = i32;
+pub type Idx = usize;
 pub type Label = String;

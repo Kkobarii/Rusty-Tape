@@ -1,22 +1,23 @@
 use std::fmt::Display;
 use crate::ram::op::Op;
 use crate::ram::rel::Rel;
-use crate::ram::types::{Register, Value};
+use crate::ram::types::Number;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum InstructionOp {
-    AssignFromConst(Register, Value),
-    AssignFromRegister(Register, Register),
-    Load(Register, Register),
-    Store(Register, Register),
-    ArithmeticRegOpReg(Register, Register, Op, Register),
-    ArithmeticRegOpConst(Register, Register, Op, Value),
+    AssignFromConst(Number, Number),
+    AssignFromRegister(Number, Number),
+    Load(Number, Number),
+    Store(Number, Number),
+    ArithmeticRegOpReg(Number, Number, Op, Number),
+    ArithmeticRegOpConst(Number, Number, Op, Number),
     Jump(String),
-    CondJumpRegRelReg(Register, Rel, Register, String),
-    CondJumpRegRelConst(Register, Rel, Value, String),
-    Read(Register),
-    Write(Register),
+    CondJumpRegRelReg(Number, Rel, Number, String),
+    CondJumpRegRelConst(Number, Rel, Number, String),
+    Read(Number),
+    Write(Number),
     Halt,
+    Empty,
 }
 
 impl Display for InstructionOp {
@@ -46,6 +47,8 @@ impl Display for InstructionOp {
                 write!(f, "write(R{})", reg),
             InstructionOp::Halt =>
                 write!(f, "halt"),
+            InstructionOp::Empty =>
+                write!(f, ""),
         }
     }
 }

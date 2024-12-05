@@ -7,7 +7,7 @@ use crate::ram::instruction_op::InstructionOp;
 use crate::ram::op::Op;
 use crate::ram::machine::RamMachine;
 use crate::ram::rel::Rel;
-use crate::ram::types::{Register, Value};
+use crate::ram::types::Number;
 
 pub struct Parser;
 
@@ -36,17 +36,14 @@ impl Parser {
         for line in lines {
             let line = line.trim().to_string();
 
-            if line.is_empty() || line.starts_with('#') {
-                continue;
-            }
-
-            let line = line.split('#').next().unwrap().trim();
-            if line.is_empty() {
-                continue;
-            }
-
-            let instruction = Self::parse_instruction(line)
+            let (line, comment) = line.split_once('#').unwrap_or((line.as_str(), ""));
+            
+            let mut instruction = Self::parse_instruction(line)
                 .ok_or_else(|| format!("Invalid instruction! {}", line))?;
+            
+            if !comment.is_empty() {
+                instruction = instruction.with_comment(comment);
+            }
 
             instructions.push(instruction);
         }
@@ -80,7 +77,8 @@ impl Parser {
             .or_else(|| Self::parse_cond_jump_rel(operation))
             .or_else(|| Self::parse_halt(operation))
             .or_else(|| Self::parse_read(operation))
-            .or_else(|| Self::parse_write(operation))?;
+            .or_else(|| Self::parse_write(operation))
+            .or_else(|| Self::parse_empty(operation))?;
 
         if let Some(label) = label {
             instruction = instruction.with_label(label);
@@ -111,18 +109,18 @@ impl Parser {
         }
     }
 
-    fn parse_register(input: &str) -> Option<Register> {
+    fn parse_register(input: &str) -> Option<Number> {
         // R3, R6, R129, ...
         let stripped = input.strip_prefix('R')?;
-        usize::from_str(stripped).ok()
+        i32::from_str(stripped).ok()
     }
 
-    fn parse_value(input: &str) -> Option<Value> {
+    fn parse_value(input: &str) -> Option<Number> {
         // 1, 3, -7, 7734, ...
         i32::from_str(input.trim()).ok()
     }
 
-    fn parse_memory_access(input: &str) -> Option<Register> {
+    fn parse_memory_access(input: &str) -> Option<Number> {
         // [R1], [R123], ...
         let input = input.strip_prefix('[')?.strip_suffix(']')?;
         Self::parse_register(input)
@@ -211,7 +209,7 @@ impl Parser {
             let parts: Vec<&str> = line.strip_prefix("if")?.trim()
                 .split("goto").map(str::trim).collect();
             if parts.len() == 2 {
-                let tokens: Vec<&str> = parts[0].strip_prefix('(')?.strip_suffix(')')?.trim()
+                let tokens: Vec<&str> = parts[0].strip_prefix('(')?.strip_suffix(')')?
                     .split_whitespace().collect();
                 if tokens.len() == 3 {
                     let reg1 = Self::parse_register(tokens[0])?;
@@ -261,5 +259,12 @@ impl Parser {
             .strip_suffix(')')?.trim();
         let register = Self::parse_register(inside)?;
         Some(Instruction::new(InstructionOp::Write(register)))
+    }
+    
+    fn parse_empty(line: &str) -> Option<Instruction> {
+        if line.is_empty() {
+            return Some(Instruction::new(InstructionOp::Empty));
+        }
+        None
     }
 }
