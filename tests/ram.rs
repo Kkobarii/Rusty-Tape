@@ -1,8 +1,10 @@
-
 #[cfg(test)]
 mod ram_tests {
-    use rusty_tape::ram::{Op, Rel, RamMachine, Instruction};
-    use rusty_tape::ram::InstructionOp::{ArithmeticRegOpConst, ArithmeticRegOpReg, AssignFromConst, AssignFromRegister, CondJumpRegRelConst, CondJumpRegRelReg, Halt, Jump, Load, Read, Store, Write};
+    use rusty_tape::ram::instruction::Instruction;
+    use rusty_tape::ram::instruction_op::InstructionOp::{ArithmeticRegOpConst, ArithmeticRegOpReg, AssignFromConst, AssignFromRegister, CondJumpRegRelConst, CondJumpRegRelReg, Halt, Jump, Load, Read, Store, Write};
+    use rusty_tape::ram::machine::RamMachine;
+    use rusty_tape::ram::op::Op;
+    use rusty_tape::ram::rel::Rel;
 
     #[test]
     fn test_assign_from_const() {

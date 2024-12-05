@@ -2,8 +2,10 @@
 mod parser_tests {
     use std::path::Path;
     use rusty_tape::parser::Parser;
-    use rusty_tape::ram::InstructionOp::{ArithmeticRegOpConst, ArithmeticRegOpReg, AssignFromConst, CondJumpRegRelConst, Halt, Jump, Load, Read, Store, Write};
-    use rusty_tape::ram::{Instruction, Op, Rel};
+    use rusty_tape::ram::instruction::Instruction;
+    use rusty_tape::ram::instruction_op::InstructionOp::{ArithmeticRegOpConst, ArithmeticRegOpReg, AssignFromConst, CondJumpRegRelConst, Halt, Jump, Load, Read, Store, Write};
+    use rusty_tape::ram::op::Op;
+    use rusty_tape::ram::rel::Rel;
 
     #[test]
     fn test_parse_read_first_half() {
