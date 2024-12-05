@@ -2,7 +2,12 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::str::FromStr;
 use std::io;
-use crate::ram::{Instruction, InstructionOp, RamMachine, Register, Value, Op, Rel};
+use crate::ram::instruction::Instruction;
+use crate::ram::instruction_op::InstructionOp;
+use crate::ram::op::Op;
+use crate::ram::machine::RamMachine;
+use crate::ram::rel::Rel;
+use crate::ram::types::{Register, Value};
 
 pub struct Parser;
 

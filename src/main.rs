@@ -1,6 +1,6 @@
 pub mod parser;
-pub mod ram;
 pub mod ui;
+pub mod ram;
 
 use crate::parser::Parser;
 use crate::ui::UiHandler;

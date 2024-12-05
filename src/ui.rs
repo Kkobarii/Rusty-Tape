@@ -13,7 +13,7 @@ use ratatui::crossterm::{
     event::{self, Event, KeyCode},
     execute, terminal::{disable_raw_mode, enable_raw_mode},
 };
-use crate::ram::RamMachine;
+use crate::ram::machine::RamMachine;
 
 /// The UI handler struct.
 pub struct UiHandler {
