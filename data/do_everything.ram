@@ -1,0 +1,25 @@
+# testing ram to try everything it can do
+
+# save number of items on input to r0
+R0 := read()
+
+# save that many items to memory
+R1 := 0
+memory_loop: if (R1 == R0) goto end_memory_loop
+    R2 := read()
+    R3 := R1 + 10
+    [R3] := R2
+    R1 := R1 + 1
+    goto memory_loop
+
+# print out the memory times 10
+end_memory_loop: R1 := 0
+print_loop: if (R1 == R0) goto end_print_loop
+    R3 := R1 + 10
+    R2 := [R3]
+    R2 := R2 * 10
+    write(R2)
+    R1 := R1 + 1
+    goto print_loop
+
+end_print_loop: halt

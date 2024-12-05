@@ -1,0 +1,13 @@
+# source: adaxiik, god rest his soul
+
+    R0 := read()        # R0 = n
+    R1 := 0
+    R2 := 1
+L:  if (R0 <= 0) goto END
+    R3 := R2
+    R2 := R3 + R1
+    R1 := R3
+    R0 := R0 - 1
+    goto L
+END: write(R1)           # write fib(n)
+    halt  

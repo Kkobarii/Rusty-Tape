@@ -1,6 +1,6 @@
          R0 := 4
          R2 := 5
-         if R0 < R2 goto true
+         if (R0 < R2) goto true
          R1 := -1
          goto end
 true:    R1 := 1
