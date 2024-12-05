@@ -151,11 +151,11 @@ mod parser_tests {
         }
 
         let instructions = vec![
-            Instruction::new(AssignFromConst(0, 0)),
+            Instruction::new(AssignFromConst(0, 2)),
             Instruction::new(AssignFromConst(1, 42)),
             Instruction::new(Store(0, 1)),
-            Instruction::new(Load(2, 0)),
-            Instruction::new(Load(3, 1)),
+            Instruction::new(Load(3, 0)),
+            Instruction::new(Load(4, 1)),
         ];
 
         let result = Parser::parse_file(filename);
@@ -166,7 +166,7 @@ mod parser_tests {
 
         assert_instructions(&program, &instructions);
     }
-
+    
     fn assert_instructions(parsed: &Vec<Instruction>, expected: &Vec<Instruction>) {
         assert_eq!(parsed.len(), expected.len(), "Instruction length mismatch");
 

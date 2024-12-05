@@ -17,9 +17,9 @@ mod ram_tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(0), 42);
-        assert_eq!(machine.get_register(1), -9);
-        assert_eq!(machine.get_register(2), 0);
+        assert_eq!(machine.get(0), 42);
+        assert_eq!(machine.get(1), -9);
+        assert_eq!(machine.get(2), 0);
     }
 
     #[test]
@@ -35,36 +35,34 @@ mod ram_tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(0), 42);
-        assert_eq!(machine.get_register(1), 42);
-        assert_eq!(machine.get_register(2), 0);
+        assert_eq!(machine.get(0), 42);
+        assert_eq!(machine.get(1), 42);
+        assert_eq!(machine.get(2), 0);
     }
 
     #[test]
     fn test_load_store() {
-        // R0 := 0
+        // R0 := 2
         // R1 := 42
         // [R0] := R1
-        // R2 := [R0]
-        // R3 := [R1]  # nothing here
+        // R3 := [R0]
+        // R4 := [R1]  # nothing here
         let program = vec![
-            Instruction::new(AssignFromConst(0, 0)),
+            Instruction::new(AssignFromConst(0, 2)),
             Instruction::new(AssignFromConst(1, 42)),
             Instruction::new(Store(0, 1)),
-            Instruction::new(Load(2, 0)),
-            Instruction::new(Load(3, 1))
+            Instruction::new(Load(3, 0)),
+            Instruction::new(Load(4, 1))
         ];
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
 
-        assert_eq!(machine.get_register(0), 0);
-        assert_eq!(machine.get_register(1), 42);
-        assert_eq!(machine.get_register(2), 42);
-        assert_eq!(machine.get_register(3), 0);
-
-        assert_eq!(machine.get_memory(0), 42);
-        assert_eq!(machine.get_memory(1), 0);
+        assert_eq!(machine.get(0), 2, "R0");
+        assert_eq!(machine.get(1), 42, "R1");
+        assert_eq!(machine.get(2), 42, "R2");
+        assert_eq!(machine.get(3), 42, "R3");
+        assert_eq!(machine.get(4), 0, "R4");
     }
 
     #[test]
@@ -86,10 +84,10 @@ mod ram_tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(3), 15);
-        assert_eq!(machine.get_register(4), 5);
-        assert_eq!(machine.get_register(5), 50);
-        assert_eq!(machine.get_register(6), 2);
+        assert_eq!(machine.get(3), 15);
+        assert_eq!(machine.get(4), 5);
+        assert_eq!(machine.get(5), 50);
+        assert_eq!(machine.get(6), 2);
     }
 
     #[test]
@@ -109,10 +107,10 @@ mod ram_tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(3), 15);
-        assert_eq!(machine.get_register(4), 5);
-        assert_eq!(machine.get_register(5), 50);
-        assert_eq!(machine.get_register(6), 2);
+        assert_eq!(machine.get(3), 15);
+        assert_eq!(machine.get(4), 5);
+        assert_eq!(machine.get(5), 50);
+        assert_eq!(machine.get(6), 2);
     }
     
     #[test]
@@ -136,7 +134,7 @@ mod ram_tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(0), 7);
+        assert_eq!(machine.get(0), 7);
     }
     
     #[test]
@@ -163,8 +161,8 @@ mod ram_tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(2), 0);
-        assert_eq!(machine.get_register(0), 10);
+        assert_eq!(machine.get(2), 0);
+        assert_eq!(machine.get(0), 10);
     }
     
     #[test]
@@ -188,7 +186,7 @@ mod ram_tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(1), 1);
+        assert_eq!(machine.get(1), 1);
     }
 
     #[test]
@@ -212,7 +210,7 @@ mod ram_tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(1), -1);
+        assert_eq!(machine.get(1), -1);
     }
     
     #[test]
@@ -228,8 +226,8 @@ mod ram_tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_err());
-        assert_eq!(machine.get_register(0), 1);
-        assert_eq!(machine.get_register(1), 0);
+        assert_eq!(machine.get(0), 1);
+        assert_eq!(machine.get(1), 0);
     }
     
     #[test]
