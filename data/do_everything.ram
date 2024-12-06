@@ -1,4 +1,7 @@
 # testing ram to try everything it can do
+# it reads in a number of items,
+#   saves them to memory,
+#   then prints them out times 10
 
 # save number of items on input to r0
 R0 := read()
