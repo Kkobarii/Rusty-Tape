@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod ram_tests {
+mod machine_tests {
     use rusty_tape::ram::instruction::Instruction;
     use rusty_tape::ram::instruction_op::InstructionOp::{ArithmeticRegOpConst, ArithmeticRegOpReg, AssignFromConst, AssignFromRegister, CondJumpRegRelConst, CondJumpRegRelReg, Halt, Jump, Load, Read, Store, Write};
     use rusty_tape::ram::machine::RamMachine;

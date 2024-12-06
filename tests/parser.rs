@@ -3,6 +3,7 @@ mod parser_tests {
     use std::path::Path;
     use rusty_tape::parser::Parser;
     use rusty_tape::ram::instruction::Instruction;
+    use rusty_tape::ram::instruction_op::InstructionOp;
     use rusty_tape::ram::instruction_op::InstructionOp::{ArithmeticRegOpConst, ArithmeticRegOpReg, AssignFromConst, CondJumpRegRelConst, Halt, Jump, Load, Read, Store, Write};
     use rusty_tape::ram::op::Op;
     use rusty_tape::ram::rel::Rel;
@@ -168,12 +169,19 @@ mod parser_tests {
     }
     
     fn assert_instructions(parsed: &Vec<Instruction>, expected: &Vec<Instruction>) {
-        assert_eq!(parsed.len(), expected.len(), "Instruction length mismatch");
+        let parsed_without_empty: Vec<Instruction> = parsed.iter()
+            .filter(|i| i.op != InstructionOp::Empty).cloned().collect();
+        
+        assert_eq!(parsed_without_empty.len(), expected.len(), "Instruction length mismatch");
 
-        for (i, (parsed_instr, expected_instr)) in parsed.iter().zip(expected).enumerate() {
+        for (i, (parsed_instr, expected_instr)) in parsed_without_empty.iter().zip(expected).enumerate() {
             assert_eq!(
-                *parsed_instr, *expected_instr,
-                "Instruction mismatch at index {i}"
+                parsed_instr.label, expected_instr.label,
+                "Label mismatch at instruction {}" , i
+            );
+            assert_eq!(
+                parsed_instr.op, expected_instr.op,
+                "Op mismatch at instruction {}", i
             );
         }
     }

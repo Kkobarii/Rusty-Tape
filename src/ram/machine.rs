@@ -203,7 +203,7 @@ impl RamMachine {
     }
     
     fn skip_empty(&mut self) {
-        while let InstructionOp::Empty = self.program[self.instruction_pointer].op {
+        while self.instruction_pointer != self.program.len() && self.program[self.instruction_pointer].op == InstructionOp::Empty {
             self.instruction_pointer += 1;
         }
     }
