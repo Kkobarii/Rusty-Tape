@@ -9,7 +9,7 @@ use ratatui::Frame;
 
 pub enum MenuHandleResult {
     Continue,
-    Machine(RamMachine),
+    Machine(String, RamMachine),
     Exit,
 }
 
@@ -68,8 +68,8 @@ impl Menu {
             .direction(Direction::Vertical)
             .constraints(
                 [
-                    Constraint::Length(15),
-                    Constraint::Min(0),
+                    Constraint::Length(15), // Title
+                    Constraint::Min(0), // Table
                 ].as_ref())
             .areas(left);
 
@@ -82,9 +82,9 @@ impl Menu {
             .direction(Direction::Vertical)
             .constraints(
                 [
-                    Constraint::Percentage(100),
-                    Constraint::Min(error_min_height),
-                    Constraint::Min(5),
+                    Constraint::Percentage(100), // Code
+                    Constraint::Min(error_min_height), // Error
+                    Constraint::Min(5), // Input
                 ].as_ref())
             .areas(right);
 
@@ -306,18 +306,31 @@ impl Menu {
         // if char is a comma or space, add ", " to the input
         match c {
             '0'..='9' => {
-                // if the char is zero and the input is empty or there is no number at the last position, ignore
-                if c == '0' && (self.input.is_empty() || self.input.ends_with(", ")) {
+                // if the last character is minus, do not add 0
+                if self.input.ends_with('-') && c == '0' {
                     return;
+                }
+                // if the whole previous number is 0, do not add another char
+                if let Some(number) = self.input.rsplit(", ").next() { 
+                    if number == "0" {
+                        return;
+                    }
                 }
                 self.input.push(c);
             }
             ',' | ' ' => {
                 // if the last character is a comma or space, ignore
-                if self.input.is_empty() || self.input.ends_with(", ") {
+                if self.input.is_empty() || self.input.ends_with(", ") || self.input.ends_with('-') {
                     return;
                 }
                 self.input.push_str(", ");
+            }
+            '-' => {
+                // if the last character is a comma or space, add it
+                // otherwise, ignore
+                if self.input.is_empty() || self.input.ends_with(", ") {
+                    self.input.push(c);
+                }
             }
             _ => {}
         }
@@ -339,7 +352,11 @@ impl Menu {
                 self.error = None;
                 self.state = MenuState::SelectingFile;
                 if let Some(machine) = self.selected_machine.take() {
-                    MenuHandleResult::Machine(machine.with_input(input_tape))
+                    let filename = self.found_files[self.selected_file.unwrap()].clone();
+                    // extract the name from ./path/to/file/name.ram
+                    let filename = filename.split('/').last().unwrap().to_string().replace(".ram", "");
+                    
+                    MenuHandleResult::Machine(filename, machine.with_input(input_tape))
                 } else {
                     self.error = Some("The machine somehow escaped".to_string());
                     MenuHandleResult::Continue

@@ -39,11 +39,6 @@ impl UiHandler {
         execute!(stdout, ratatui::crossterm::terminal::EnterAlternateScreen)?;
         let backend = CrosstermBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
-
-        // let filename = "data/do_everything.ram";
-        // let machine = Parser::parse_file(filename).expect("Failed to parse file")
-        //     .with_input(vec![5, 1, 2, 3, 4, 5]);
-        // self.simulation = Some(Simulation::new(machine));
         
         // Main loop
         let err = loop {
@@ -64,15 +59,18 @@ impl UiHandler {
                             self.simulation = None;
                             continue;
                         },
-                        SimulationHandleResult::Exit => break Ok(()),
+                        SimulationHandleResult::Exit => {
+                            self.simulation = None;
+                            continue;
+                        },
                         SimulationHandleResult::Error(message) => break Err(message),
                     }
                 } else {
                     match self.menu.handle_input(key) {
                         MenuHandleResult::Continue => continue,
                         MenuHandleResult::Exit => break Ok(()),
-                        MenuHandleResult::Machine(machine) => { 
-                            self.simulation = Some(Simulation::new(machine));
+                        MenuHandleResult::Machine(name, machine) => { 
+                            self.simulation = Some(Simulation::new(name, machine));
                         },
                     }
                 }
