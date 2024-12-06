@@ -1,0 +1,12 @@
+    R0 := 3
+    R1 := R0
+L1: R2 := read()
+    if (R2 == 0) goto L3
+    [R1] := R2
+    R1 := R1 + 1
+    goto L1
+L2: R1 := R1 - 1
+    R2 := [R1]
+    write(R2)
+L3: if (R1 > R0) goto L2
+    halt
