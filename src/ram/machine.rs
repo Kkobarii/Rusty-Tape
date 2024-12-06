@@ -3,14 +3,15 @@ use crate::ram::instruction::Instruction;
 use crate::ram::instruction_op::InstructionOp;
 use crate::ram::op::{Op};
 use crate::ram::rel::{Rel};
-use crate::ram::types::{Idx, Label, Number};
+use crate::ram::types::{Index, Label, Number};
 
 #[derive(Debug)]
 pub struct RamMachine {
     memory: HashMap<Number, Number>,
     program: Vec<Instruction>,
-    instruction_pointer: Idx,
-    labels: HashMap<Label, Idx>,
+    instruction_pointer: Index,
+    labels: HashMap<Label, Index>,
+    input_pointer: Index,
     input_tape: Vec<Number>,
     output_tape: Vec<Number>,
 }
@@ -24,6 +25,7 @@ impl RamMachine {
             program,
             instruction_pointer: 0,
             labels,
+            input_pointer: 0,
             input_tape: Vec::new(),
             output_tape: Vec::new(),
         };
@@ -37,7 +39,7 @@ impl RamMachine {
         self
     }
 
-    fn extract_labels(program: &[Instruction]) -> HashMap<Label, Idx> {
+    fn extract_labels(program: &[Instruction]) -> HashMap<Label, Index> {
         let mut labels = HashMap::new();
         for (i, instruction) in program.iter().enumerate() {
             if let Some(label) = &instruction.label {
@@ -61,6 +63,10 @@ impl RamMachine {
     pub fn get_memory(&self) -> &HashMap<Number, Number> {
         &self.memory
     }
+    
+    pub fn get_input_pointer(&self) -> Index {
+        self.input_pointer
+    }
 
     pub fn get_input(&self) -> &Vec<Number> {
         &self.input_tape
@@ -74,29 +80,9 @@ impl RamMachine {
         &self.program
     }
 
-    pub fn get_instruction_pointer(&self) -> Idx {
+    pub fn get_instruction_pointer(&self) -> Index {
         self.instruction_pointer
     }
-    
-    // fn read_input(&mut self) -> Result<Value, String> {
-    //     if self.input_tape.is_empty() {
-    //         return Err("The input tape is empty".to_string())
-    //     }
-    //     Ok(self.input_tape.remove(0))
-    // }
-    // 
-    // fn write_output(&mut self, value: Value) {
-    //     self.output_tape.push(value);
-    // }
-    
-    // TODO: figure this out
-    // fn step_to_label(&mut self, label: &str) -> Result<bool, String> {
-    //     if let Some(&index) = self.labels.get(label) {
-    //         self.instruction_pointer = index;
-    //         return Ok(false);
-    //     }
-    //     Err(format!("Label {} not found", label))
-    // }
 
     fn apply_op(&self, op: Op, a: Number, b: Number) -> Number {
         match op {
@@ -183,10 +169,11 @@ impl RamMachine {
             InstructionOp::Halt => return Ok(true),
             // Ri := read()
             InstructionOp::Read(reg) => {
-                if self.input_tape.is_empty() {
+                if self.input_pointer >= self.input_tape.len() {
                     return Err("The input tape is empty".to_string())
                 }
-                let val = self.input_tape.remove(0);
+                let val = self.input_tape[self.input_pointer];
+                self.input_pointer += 1;
                 self.set(*reg, val);
             }
             // write(Ri)
@@ -199,6 +186,11 @@ impl RamMachine {
 
         self.instruction_pointer += 1;
         self.skip_empty();
+        
+        if self.instruction_pointer >= self.program.len() {
+            return Ok(true);  // end of program
+        }
+        
         Ok(false)
     }
     

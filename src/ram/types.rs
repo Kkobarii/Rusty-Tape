@@ -1,3 +1,3 @@
 pub type Number = i32;
-pub type Idx = usize;
+pub type Index = usize;
 pub type Label = String;
