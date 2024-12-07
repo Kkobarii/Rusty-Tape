@@ -55,6 +55,7 @@ impl Menu {
     }
 
     pub fn draw_frame(&self, f: &mut Frame) {
+        // Initialize layout
         let [left, right] = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(
@@ -88,6 +89,7 @@ impl Menu {
                 ].as_ref())
             .areas(right);
 
+        // Draw widgets
         f.render_widget(self.draw_title(), title_area);
         f.render_widget(self.draw_file_list(), table_area);
         f.render_widget(self.draw_code(), code_area);
@@ -100,10 +102,12 @@ impl Menu {
     pub fn draw_title(&self) -> List {
         let indent = " ";
 
+        let title_widget = ListItem::new(Text::from(self.logo.clone()).centered().fg(Color::Yellow));
+
         let greeting = "Welcome to Rusty Tape, my own Rust-powered\n RAM machine simulator!";
         let greeting_widget = ListItem::new(Text::from(format!("{}{}", indent, greeting)));
 
-        let info_text = match self.state {
+        let info_widgets = match self.state {
             MenuState::SelectingFile => vec![
                 "Up/Down arrows to select a file.",
                 "Enter to load the file.",
@@ -114,12 +118,10 @@ impl Menu {
                 "Enter to confirm.",
                 "Esc to go back.",
             ],
-        }.into_iter().map(|line| format!("{}{}", indent, line)).collect::<Vec<String>>();
-
-        let title_widget = ListItem::new(Text::from(self.logo.clone()).centered());
-        let info_widgets: Vec<ListItem> = info_text.into_iter()
+        }.into_iter()
+            .map(|line| format!("{}{}", indent, line))
             .map(|line| ListItem::new(Text::from(line)))
-            .collect();
+            .collect::<Vec<ListItem>>();
 
         let mut items = vec![title_widget, greeting_widget, ListItem::new(Span::raw(""))];
         items.extend(info_widgets);
@@ -135,12 +137,24 @@ impl Menu {
         };
 
         let items: Vec<ListItem> = self.found_files.iter().enumerate().map(|(i, file)| {
-            let (prefix, style) = if Some(i) == self.selected_file {
+            let (arrow, style) = if Some(i) == self.selected_file {
                 ("> ", Style::default().fg(Color::Yellow))
             } else {
                 ("  ", Style::default())
             };
-            ListItem::new(Span::styled(format!("{}{}", prefix, file), style))
+
+            let path_parts: Vec<&str> = file.split('/').collect();
+            let (dir_path, filename) = if path_parts.len() > 1 {
+                (path_parts[..path_parts.len() - 1].join("/") + "/", path_parts[path_parts.len() - 1])
+            } else {
+                ("".to_string(), file.as_str())
+            };
+
+            let arrow_span = Span::styled(arrow, style);
+            let dir_span = Span::styled(dir_path, Style::default().fg(Color::DarkGray));
+            let file_span = Span::styled(filename, style);
+
+            ListItem::new(Line::from(vec![arrow_span, dir_span, file_span]))
         }).collect();
 
         List::new(items)
@@ -183,7 +197,7 @@ impl Menu {
             }
         }
 
-        List::new(vec![ListItem::new(Span::raw(""))])
+        List::new::<Vec<ListItem>>(vec![])
             .block(Block::default()
                 .borders(Borders::ALL)
                 .title("Code")
@@ -352,10 +366,13 @@ impl Menu {
                 self.error = None;
                 self.state = MenuState::SelectingFile;
                 if let Some(machine) = self.selected_machine.take() {
-                    let filename = self.found_files[self.selected_file.unwrap()].clone();
-                    // extract the name from ./path/to/file/name.ram
-                    let filename = filename.split('/').last().unwrap().to_string().replace(".ram", "");
-                    
+                    let filename = self.found_files[self.selected_file.unwrap()]
+                        .clone()
+                        .split('/')
+                        .last()
+                        .unwrap()
+                        .to_string()
+                        .replace(".ram", "");
                     MenuHandleResult::Machine(filename, machine.with_input(input_tape))
                 } else {
                     self.error = Some("The machine somehow escaped".to_string());
@@ -382,8 +399,25 @@ impl Menu {
         if self.input.is_empty() {
             return Ok(Vec::new());
         }
+
+        if self.input.trim().ends_with(',') {
+            return Err("Input cannot end with a comma.".to_string());
+        }
+
         self.input.split(',')
-            .map(|s| s.trim().parse::<i32>().map_err(|_| "Invalid input".to_string()))
+            .map(|s| {
+                let trimmed = s.trim();
+                trimmed.parse::<i32>().map_err(|_| {
+                    if trimmed.parse::<i64>().is_ok() {
+                        format!(
+                            "Input value {trimmed} is too {}.", 
+                            if trimmed.starts_with('-') { "small" } else { "large" }
+                        )
+                    } else {
+                        "Invalid input.".to_string()
+                    }
+                })
+            })
             .collect()
     }
 
