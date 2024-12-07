@@ -8,9 +8,6 @@ use ratatui::Terminal;
 use std::io;
 use crate::ui::menu::{Menu, MenuHandleResult};
 
-
-
-/// The UI handler struct.
 pub struct UiHandler {
     simulation: Option<Simulation>,
     menu: Menu
@@ -23,7 +20,6 @@ impl Default for UiHandler {
 }
 
 impl UiHandler {
-    
     pub fn new() -> Self {
         UiHandler {
             simulation: None,
@@ -31,7 +27,6 @@ impl UiHandler {
         }
     }
     
-    /// Initializes the UI and handles events.
     pub fn run(&mut self) -> io::Result<()> {
         // Setup terminal
         enable_raw_mode()?;
@@ -41,9 +36,10 @@ impl UiHandler {
         let mut terminal = Terminal::new(backend)?;
         
         // Main loop
-        let err = loop {
+        let err: Result<(), String> = loop {
+            // Draw frame
             terminal.draw(|f| {
-                if let Some(ref mut simulation) = self.simulation { 
+                if let Some(simulation) = &self.simulation { 
                     simulation.draw_frame(f) 
                 } else {
                     self.menu.draw_frame(f)
@@ -55,15 +51,10 @@ impl UiHandler {
                 if let Some(ref mut simulation) = self.simulation { 
                     match simulation.handle_input(key) {
                         SimulationHandleResult::Continue => continue,
-                        SimulationHandleResult::Finish => {
-                            self.simulation = None;
-                            continue;
-                        },
                         SimulationHandleResult::Exit => {
                             self.simulation = None;
                             continue;
                         },
-                        SimulationHandleResult::Error(message) => break Err(message),
                     }
                 } else {
                     match self.menu.handle_input(key) {

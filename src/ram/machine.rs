@@ -170,7 +170,7 @@ impl RamMachine {
             // Ri := read()
             InstructionOp::Read(reg) => {
                 if self.input_pointer >= self.input_tape.len() {
-                    return Err("The input tape is empty".to_string())
+                    return Err("Attempt to read from empty tape".to_string())
                 }
                 let val = self.input_tape[self.input_pointer];
                 self.input_pointer += 1;
@@ -182,7 +182,6 @@ impl RamMachine {
             }
             InstructionOp::Empty => { return Err("Empty instruction should be skipped".to_string()) }
         }
-        
 
         self.instruction_pointer += 1;
         self.skip_empty();

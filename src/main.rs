@@ -6,5 +6,5 @@ use crate::ui::handler::UiHandler;
 
 fn main() {
     let mut ui = UiHandler::default();
-    ui.run().expect("TODO: panic message");
+    ui.run().expect("Error running UI");
 }
