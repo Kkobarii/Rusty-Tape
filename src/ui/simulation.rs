@@ -5,33 +5,45 @@ use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::prelude::{Color, Line, Modifier, Span, Style, Text};
 use ratatui::widgets::{Block, Borders, List, ListItem, Padding};
 use ratatui::Frame;
+use ratatui::style::Stylize;
 
 pub enum SimulationHandleResult {
     Continue,
-    Finish,
     Exit,
+}
+
+#[derive(PartialEq)]
+pub enum SimulationState {
+    Running,
+    Finished,
     Error(String),
 }
 
 pub struct Simulation {
     name: String,
     machine: RamMachine,
-    label_indent: usize
+    label_indent: usize,
+    state: SimulationState,
 }
 
 impl Simulation {
     pub fn new(name: String, machine: RamMachine) -> Self {
-        // label indent is longest label name
         let label_indent = machine.get_program().iter()
             .filter_map(|instruction| instruction.label.as_ref())
             .map(|label| label.len())
             .max()
             .unwrap_or(0);
         
-        Simulation { name, machine, label_indent }
+        Simulation {
+            name,
+            machine,
+            label_indent,
+            state: SimulationState::Running
+        }
     }
 
     pub fn draw_frame(&self, f: &mut Frame) {
+        // Split the frame into areas
         let [left, memory_area] = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(
@@ -72,6 +84,7 @@ impl Simulation {
             )
             .areas(tapes);
 
+        // Draw widgets
         f.render_widget(self.draw_code(), code_area);
         f.render_widget(self.draw_memory(), memory_area);
         f.render_widget(self.draw_input_tape(), input_tape_area);
@@ -80,17 +93,42 @@ impl Simulation {
     }
 
     fn draw_info(&self) -> List {
-        // TODO: More info
-        
-        let info_text =  vec![
-            format!("Running simulation: {}", self.name),
-            format!("Instruction Pointer: {}", self.machine.get_instruction_pointer()),
+        let mut info_widgets: Vec<ListItem> = vec![
+            ListItem::new(Text::from(format!("Running simulation: {}", self.name))),
+            ListItem::new(Text::from(format!("│ Instruction Pointer: {}", self.machine.get_instruction_pointer()))),
+            ListItem::new(Text::from(format!("│ Input Pointer: {}", self.machine.get_input_pointer()))),
+            ListItem::new(Text::from(format!("│ Output Tape Length: {}", self.machine.get_output().len()))),
+            ListItem::new(Text::raw("")),
         ];
 
-        let info_widgets: Vec<ListItem> = info_text.into_iter()
-            .map(|line| ListItem::new(Text::from(line)))
-            .collect();
-        
+        match &self.state {
+            SimulationState::Error(message) => {
+                info_widgets.push(ListItem::new(Text::styled(
+                    "Error!",
+                    Style::default().fg(Color::Red),
+                )));
+                info_widgets.push(ListItem::new(Text::styled(
+                    format!("│ {}", message),
+                    Style::default().fg(Color::Red),
+                )));
+                info_widgets.push(ListItem::new(Text::styled(
+                    "│ Press 'Esc' to exit",
+                    Style::default().fg(Color::Red),
+                )));
+            }
+            SimulationState::Finished => {
+                info_widgets.push(ListItem::new(Text::styled(
+                    "Simulation Finished!",
+                    Style::default().fg(Color::Green),
+                )));
+                info_widgets.push(ListItem::new(Text::styled(
+                    "│ Press 'Esc' to exit",
+                    Style::default().fg(Color::Green),
+                )));
+            }
+            _ => {}
+        }
+
         List::new(info_widgets)
             .block(Block::default()
                 .borders(Borders::ALL)
@@ -100,7 +138,6 @@ impl Simulation {
     }
 
     fn draw_output_tape(&self) -> List {
-        // Create spans for the output tape
         let mut pointer_line_spans = vec![Span::raw(" ")];
         let mut number_line_spans = vec![Span::raw("[")];
 
@@ -117,11 +154,9 @@ impl Simulation {
         number_line_spans.push(Span::styled("_", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)));
         number_line_spans.push(Span::raw("]"));
 
-        // Convert spans into lines
         let pointer_line = Line::from(pointer_line_spans);
         let number_line = Line::from(number_line_spans);
 
-        // Combine lines into a list
         List::new(vec![
             ListItem::new(number_line),
             ListItem::new(pointer_line),
@@ -130,10 +165,13 @@ impl Simulation {
                 Block::default()
                     .borders(Borders::ALL)
                     .title("Output tape")
+                    .fg(match self.state {
+                        SimulationState::Error(_) | SimulationState::Finished => Color::DarkGray,
+                        _ => Color::Reset,
+                    })
                     .padding(Padding::symmetric(2, 1)),
             )
     }
-
 
     fn draw_input_tape(&self) -> List {
         let input_pointer = self.machine.get_input_pointer();
@@ -169,13 +207,25 @@ impl Simulation {
         // Handle the case where the pointer is at the end
         if input_pointer == input_values.len() {
             pointer_line_spans.extend([
-                Span::styled("  ", Style::default()),
-                Span::styled("^", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    if input_pointer == 0 { "" } else { "  " },
+                    Style::default()
+                ),
+                Span::styled(
+                    "^", 
+                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+                ),
             ]);
 
             number_line_spans.extend([
-                Span::styled(", ", Style::default().fg(Color::DarkGray)),
-                Span::styled("_", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    if input_pointer == 0 { "" } else { ", " },
+                    Style::default().fg(Color::DarkGray)
+                ),
+                Span::styled(
+                    "_", 
+                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+                ),
             ]);
         } 
 
@@ -189,6 +239,10 @@ impl Simulation {
         List::new(input_tape_items).block(
             Block::default()
                 .borders(Borders::ALL)
+                .fg(match self.state {
+                    SimulationState::Error(_) | SimulationState::Finished => Color::DarkGray,
+                    _ => Color::Reset,
+                })
                 .title("Input tape")
                 .padding(Padding::symmetric(2, 1)),
         )
@@ -217,6 +271,10 @@ impl Simulation {
         List::new(memory_list_items)
             .block(Block::default()
                 .borders(Borders::ALL)
+                .fg(match self.state {
+                    SimulationState::Error(_) | SimulationState::Finished => Color::DarkGray,
+                    _ => Color::Reset,
+                })
                 .title("Memory")
                 .padding(Padding::symmetric(2, 1))
             )
@@ -240,10 +298,7 @@ impl Simulation {
 
                 let label_span = if let Some(label) = &line.label {
                     let label_str = format!("{}:", label);
-                    Span::styled(
-                        format!("{:width$} ", label_str, width = self.label_indent + 1),
-                        Style::default().fg(Color::Gray),
-                    )
+                    Span::from(format!("{:width$} ", label_str, width = self.label_indent + 1))
                 } else {
                     Span::raw(" ".repeat(self.label_indent + 2))
                 };
@@ -283,6 +338,10 @@ impl Simulation {
         List::new(code_items)
             .block(Block::default()
                 .borders(Borders::ALL)
+                .fg(match self.state {
+                    SimulationState::Error(_) | SimulationState::Finished => Color::DarkGray,
+                    _ => Color::Reset,
+                })
                 .title("Code")
                 .padding(Padding::symmetric(1, 1))
             )
@@ -290,12 +349,21 @@ impl Simulation {
 
     pub fn handle_input(&mut self, key: KeyEvent) -> SimulationHandleResult {
         match key.code {
-            KeyCode::Char(' ') => {
-                // Step instruction
+            KeyCode::Char(' ') | KeyCode::Enter => {
+                if self.state != SimulationState::Running {
+                    return SimulationHandleResult::Continue;
+                }
+                
                 match self.machine.step() {
-                    Ok(true) => SimulationHandleResult::Finish,
+                    Ok(true) => {
+                        self.state = SimulationState::Finished;
+                        SimulationHandleResult::Continue
+                    }
                     Ok(false) => SimulationHandleResult::Continue,
-                    Err(message) => SimulationHandleResult::Error(message)
+                    Err(message) => {
+                        self.state = SimulationState::Error(message);
+                        SimulationHandleResult::Continue
+                    }
                 }
             }
             KeyCode::Esc => SimulationHandleResult::Exit,
