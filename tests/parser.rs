@@ -143,7 +143,7 @@ mod parser_tests {
 
     #[test]
     fn test_parse_file() {
-        let filename = "data/load_store.ram";
+        let filename = "data/testing/load_store.ram";
 
         // check if the file exists, otherwise skip
         if !Path::new(filename).exists() {

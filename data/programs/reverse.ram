@@ -1,3 +1,7 @@
+# Input a list of numbers
+# End the list with a 0
+# Output is the list in reverse order
+
     R0 := 3
     R1 := R0
 L1: R2 := read()
