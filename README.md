@@ -59,21 +59,19 @@ If the machine encounters an error, it will show an error message and stop the s
 ### Writing a RAM file
 To run a program, you need to write a `.ram` file with the instructions. They use the classic instruction set for RAM machines, which is a simple set of operations that can be used to write complex programs.
 
-| Example                     | Explanation                                                                   |
-|-----------------------------|-------------------------------------------------------------------------------|
-| `R0 := 42`                  | Assigns the constant value `42` to register `R0`.                             |
-| `R1 := R0`                  | Copies the value from register `R0` to register `R1`.                         |
-| `R2 := [R1]`                | Loads the value from memory at the address in `R1` into `R2`.                 |
-| `[R1] := R2`                | Stores the value from `R2` into memory at the address in `R1`.                |
-| `R3 := R1 + R2`             | Adds the values in `R1` and `R2`, storing the result in `R3`.                 |
-| `R4 := R3 - 10`             | Subtracts `10` from the value in `R3`, storing the result in `R4`.            |
-| `goto loop`                 | Jumps to the instruction labeled `loop`.                                      |
-| `if (R0 < R1) goto end`     | Jumps to the label `end` if the value in `R0` is less than the value in `R1`. |
-| `if (R2 == 100) goto start` | Jumps to the label `start` if the value in `R2` equals `100`.                 |
-| `R5 := read()`              | Reads an input value and stores it in `R5`.                                   |
-| `write(R5)`                 | Writes the value in `R5` to the output.                                       |
-| `halt`                      | Stops the execution of the program.                                           |
-| *(empty)*                   | Represents an empty instruction (this is specific to my implementation).      |
+| Example                     | Explanation                                                                                                                              |
+|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| `R0 := 42`                  | Assigns the constant value `42` to register `R0`.                                                                                        |
+| `R1 := R0`                  | Copies the value from register `R0` to register `R1`.                                                                                    |
+| `R2 := [R1]`                | Loads the value from memory at the address in `R1` into `R2`.                                                                            |
+| `[R1] := R2`                | Stores the value from `R2` into memory at the address in `R1`.                                                                           |
+| `R3 := R1 op R2`            | Performs the operation `op` on the values in `R1` and `R2`, storing the result in `R3`.<br>Supported operations: `+`, `-`, `*`, `/`.     |
+| `if (R0 rel R1) goto label` | Jumps to the instruction labeled `label` if the condition `R0 rel R1` is true.<br>Supported relations: `==`, `!=`, `<`, `>`, `<=`, `>=`. |
+| `goto label`                | Jumps to the instruction labeled `label`.                                                                                                |
+| `R5 := read()`              | Reads an input value and stores it in `R5`.                                                                                              |
+| `write(R5)`                 | Writes the value in `R5` to the output.                                                                                                  |
+| `halt`                      | Stops the execution of the program.                                                                                                      |
+| *(empty)*                   | Represents an empty instruction (this is specific to my implementation).                                                                 |
 
 Every instruction has two optional parts: a label and a comment. 
 The label is a string of characters that ends with a colon (`:`), and which can be used to reference the instruction in a `goto` statement. 
