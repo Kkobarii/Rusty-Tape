@@ -47,7 +47,7 @@ mod parser_tests {
         let machine = result.unwrap();
         let program = machine.get_program();
 
-        assert_instructions(&program, &instructions);
+        assert_instructions(program, &instructions);
     }
 
     #[test]
@@ -81,7 +81,7 @@ mod parser_tests {
         let machine = result.unwrap();
         let program = machine.get_program();
 
-        assert_instructions(&program, &instructions);
+        assert_instructions(program, &instructions);
     }
 
     #[test]
@@ -107,7 +107,7 @@ mod parser_tests {
         let machine = result.unwrap();
         let program = machine.get_program();
 
-        assert_instructions(&program, &instructions);
+        assert_instructions(program, &instructions);
     }
 
     #[test]
@@ -138,7 +138,7 @@ mod parser_tests {
         let machine = result.unwrap();
         let program = machine.get_program();
 
-        assert_instructions(&program, &instructions);
+        assert_instructions(program, &instructions);
     }
 
     #[test]
@@ -165,10 +165,10 @@ mod parser_tests {
         let machine = result.unwrap();
         let program = machine.get_program();
 
-        assert_instructions(&program, &instructions);
+        assert_instructions(program, &instructions);
     }
     
-    fn assert_instructions(parsed: &Vec<Instruction>, expected: &Vec<Instruction>) {
+    fn assert_instructions(parsed: &[Instruction], expected: &Vec<Instruction>) {
         let parsed_without_empty: Vec<Instruction> = parsed.iter()
             .filter(|i| i.op != InstructionOp::Empty).cloned().collect();
         
