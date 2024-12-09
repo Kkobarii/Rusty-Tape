@@ -1,0 +1,7 @@
+         R0 := 1
+         R1 := 3
+         R2 := 1000
+         R0 := R0 + R1
+         goto skip
+         R0 := R0 + R2
+skip:    R0 := R0 + R1

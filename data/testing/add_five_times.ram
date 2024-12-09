@@ -1,0 +1,8 @@
+         R0 := 0  # sum
+         R1 := 2  # increment
+         R2 := 5  # counter
+start:   if (R2 <= 0) goto end
+         R0 := R0 + R1
+         R2 := R2 - 1
+         goto start
+end:     halt

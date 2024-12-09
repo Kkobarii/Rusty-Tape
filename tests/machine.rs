@@ -1,28 +1,10 @@
-
 #[cfg(test)]
-mod tests {
-    use rusty_tape::ram::{Op, Rel, RamMachine, Instruction};
-    use rusty_tape::ram::InstructionOp::{ArithmeticRegOpConst, ArithmeticRegOpReg, AssignFromConst, AssignFromRegister, CondJumpRegRelConst, CondJumpRegRelReg, Halt, Jump, Load, Read, Store, Write};
-
-    #[test]
-    fn test_op_from_string() {
-        assert_eq!(Op::from_string("+").unwrap(), Op::Add);
-        assert_eq!(Op::from_string("-").unwrap(), Op::Sub);
-        assert_eq!(Op::from_string("*").unwrap(), Op::Mul);
-        assert_eq!(Op::from_string("/").unwrap(), Op::Div);
-        assert!(Op::from_string("%").is_err());
-    }
-
-    #[test]
-    fn test_rel_from_string() {
-        assert_eq!(Rel::from_string("<").unwrap(), Rel::Lt);
-        assert_eq!(Rel::from_string(">").unwrap(), Rel::Gt);
-        assert_eq!(Rel::from_string("<=").unwrap(), Rel::Le);
-        assert_eq!(Rel::from_string(">=").unwrap(), Rel::Ge);
-        assert_eq!(Rel::from_string("==").unwrap(), Rel::Eq);
-        assert_eq!(Rel::from_string("!=").unwrap(), Rel::Ne);
-        assert!(Rel::from_string("=<").is_err());
-    }
+mod machine_tests {
+    use rusty_tape::ram::instruction::Instruction;
+    use rusty_tape::ram::instruction_op::InstructionOp::{ArithmeticRegOpConst, ArithmeticRegOpReg, AssignFromConst, AssignFromRegister, CondJumpRegRelConst, CondJumpRegRelReg, Halt, Jump, Load, Read, Store, Write};
+    use rusty_tape::ram::machine::RamMachine;
+    use rusty_tape::ram::op::Op;
+    use rusty_tape::ram::rel::Rel;
 
     #[test]
     fn test_assign_from_const() {
@@ -35,9 +17,9 @@ mod tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(0), 42);
-        assert_eq!(machine.get_register(1), -9);
-        assert_eq!(machine.get_register(2), 0);
+        assert_eq!(machine.get(0), 42);
+        assert_eq!(machine.get(1), -9);
+        assert_eq!(machine.get(2), 0);
     }
 
     #[test]
@@ -53,36 +35,34 @@ mod tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(0), 42);
-        assert_eq!(machine.get_register(1), 42);
-        assert_eq!(machine.get_register(2), 0);
+        assert_eq!(machine.get(0), 42);
+        assert_eq!(machine.get(1), 42);
+        assert_eq!(machine.get(2), 0);
     }
 
     #[test]
     fn test_load_store() {
-        // R0 := 0
+        // R0 := 2
         // R1 := 42
         // [R0] := R1
-        // R2 := [R0]
-        // R3 := [R1]  # nothing here
+        // R3 := [R0]
+        // R4 := [R1]  # nothing here
         let program = vec![
-            Instruction::new(AssignFromConst(0, 0)),
+            Instruction::new(AssignFromConst(0, 2)),
             Instruction::new(AssignFromConst(1, 42)),
             Instruction::new(Store(0, 1)),
-            Instruction::new(Load(2, 0)),
-            Instruction::new(Load(3, 1))
+            Instruction::new(Load(3, 0)),
+            Instruction::new(Load(4, 1))
         ];
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
 
-        assert_eq!(machine.get_register(0), 0);
-        assert_eq!(machine.get_register(1), 42);
-        assert_eq!(machine.get_register(2), 42);
-        assert_eq!(machine.get_register(3), 0);
-
-        assert_eq!(machine.get_memory(0), 42);
-        assert_eq!(machine.get_memory(1), 0);
+        assert_eq!(machine.get(0), 2, "R0");
+        assert_eq!(machine.get(1), 42, "R1");
+        assert_eq!(machine.get(2), 42, "R2");
+        assert_eq!(machine.get(3), 42, "R3");
+        assert_eq!(machine.get(4), 0, "R4");
     }
 
     #[test]
@@ -104,10 +84,10 @@ mod tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(3), 15);
-        assert_eq!(machine.get_register(4), 5);
-        assert_eq!(machine.get_register(5), 50);
-        assert_eq!(machine.get_register(6), 2);
+        assert_eq!(machine.get(3), 15);
+        assert_eq!(machine.get(4), 5);
+        assert_eq!(machine.get(5), 50);
+        assert_eq!(machine.get(6), 2);
     }
 
     #[test]
@@ -127,10 +107,10 @@ mod tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(3), 15);
-        assert_eq!(machine.get_register(4), 5);
-        assert_eq!(machine.get_register(5), 50);
-        assert_eq!(machine.get_register(6), 2);
+        assert_eq!(machine.get(3), 15);
+        assert_eq!(machine.get(4), 5);
+        assert_eq!(machine.get(5), 50);
+        assert_eq!(machine.get(6), 2);
     }
     
     #[test]
@@ -154,7 +134,7 @@ mod tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(0), 7);
+        assert_eq!(machine.get(0), 7);
     }
     
     #[test]
@@ -181,8 +161,8 @@ mod tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(2), 0);
-        assert_eq!(machine.get_register(0), 10);
+        assert_eq!(machine.get(2), 0);
+        assert_eq!(machine.get(0), 10);
     }
     
     #[test]
@@ -206,7 +186,7 @@ mod tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(1), 1);
+        assert_eq!(machine.get(1), 1);
     }
 
     #[test]
@@ -230,7 +210,7 @@ mod tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_ok());
-        assert_eq!(machine.get_register(1), -1);
+        assert_eq!(machine.get(1), -1);
     }
     
     #[test]
@@ -246,8 +226,8 @@ mod tests {
 
         let mut machine = RamMachine::new(program);
         assert!(machine.run().is_err());
-        assert_eq!(machine.get_register(0), 1);
-        assert_eq!(machine.get_register(1), 0);
+        assert_eq!(machine.get(0), 1);
+        assert_eq!(machine.get(1), 0);
     }
     
     #[test]
