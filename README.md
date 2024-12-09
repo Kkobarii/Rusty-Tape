@@ -1,4 +1,5 @@
-[![Tests](https://github.com/Kkobarii/Rusty-Tape/actions/workflows/tests.yml/badge.svg)](https://github.com/Kkobarii/Rusty-Tape/actions/workflows/tests.yml)
+[![Tests](https://github.com/Kkobarii/Rusty-Tape/actions/workflows/tests.yml/badge.svg)](https://github.com/Kkobarii/Rusty-Tape/actions/workflows/tests.yml) 
+[![Release](https://img.shields.io/github/release/Kkobarii/Rusty-Tape?include_prereleases=&sort=semver&color=blue)](https://github.com/Kkobarii/Rusty-Tape/releases/)
 
 # Rusty Tape
 
