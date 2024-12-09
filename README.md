@@ -65,7 +65,7 @@ To run a program, you need to write a `.ram` file with the instructions. They us
 | `R1 := R0`                  | Copies the value from register `R0` to register `R1`.                                                                                    |
 | `R2 := [R1]`                | Loads the value from memory at the address in `R1` into `R2`.                                                                            |
 | `[R1] := R2`                | Stores the value from `R2` into memory at the address in `R1`.                                                                           |
-| `R3 := R1 op R2`            | Performs the operation `op` on the values in `R1` and `R2`, storing the result in `R3`.<br>Supported operations: `+`, `-`, `*`, `/`.     |
+| `R3 := R1 op R2`            | Performs `op` on the values in `R1` and `R2`, storing the result in `R3`.<br>Supported operations: `+`, `-`, `*`, `/`.                   |
 | `if (R0 rel R1) goto label` | Jumps to the instruction labeled `label` if the condition `R0 rel R1` is true.<br>Supported relations: `==`, `!=`, `<`, `>`, `<=`, `>=`. |
 | `goto label`                | Jumps to the instruction labeled `label`.                                                                                                |
 | `R5 := read()`              | Reads an input value and stores it in `R5`.                                                                                              |
