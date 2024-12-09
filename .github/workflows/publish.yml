@@ -1,8 +1,8 @@
 name: Release
 
-on: 
-  push:
-    branches: [ "master", "actions" ]
+on:
+  release:
+    types: [created]
 
 jobs:
   release:
@@ -20,4 +20,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           RUSTTARGET: ${{ matrix.target }}
-          EXTRA_FILES: "README.md LICENSE"
+          EXTRA_FILES: "README.md LICENSE data/*/*.ram gif/*"
