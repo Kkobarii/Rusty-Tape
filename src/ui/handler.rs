@@ -5,6 +5,7 @@ use ratatui::crossterm::{
     execute, terminal::{disable_raw_mode, enable_raw_mode},
 };
 use ratatui::Terminal;
+use ratatui::crossterm::event::KeyEventKind;
 use std::io;
 use crate::ui::menu::{Menu, MenuHandleResult};
 
@@ -48,6 +49,9 @@ impl UiHandler {
 
             // Handle input events
             if let Event::Key(key) = event::read()? {
+                if key.kind != KeyEventKind::Press {
+                    continue;
+                }
                 if let Some(ref mut simulation) = self.simulation { 
                     match simulation.handle_input(key) {
                         SimulationHandleResult::Continue => continue,
