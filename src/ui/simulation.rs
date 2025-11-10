@@ -98,6 +98,7 @@ impl Simulation {
             ListItem::new(Text::from(format!("│ Instruction Pointer: {}", self.machine.get_instruction_pointer()))),
             ListItem::new(Text::from(format!("│ Input Pointer: {}", self.machine.get_input_pointer()))),
             ListItem::new(Text::from(format!("│ Output Tape Length: {}", self.machine.get_output().len()))),
+            ListItem::new(Text::from(format!("│ Instructions Executed: {}", self.machine.get_instruction_count()))),
             ListItem::new(Text::raw("")),
         ];
 

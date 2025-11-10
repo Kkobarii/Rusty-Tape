@@ -14,6 +14,7 @@ pub struct RamMachine {
     input_pointer: Index,
     input_tape: Vec<Number>,
     output_tape: Vec<Number>,
+    instruction_count: Index,
 }
 
 impl RamMachine {
@@ -28,6 +29,7 @@ impl RamMachine {
             input_pointer: 0,
             input_tape: Vec::new(),
             output_tape: Vec::new(),
+            instruction_count: 0,
         };
         
         machine.skip_empty();
@@ -84,6 +86,10 @@ impl RamMachine {
         self.instruction_pointer
     }
 
+    pub fn get_instruction_count(&self) -> Index {
+        self.instruction_count
+    }
+
     fn apply_op(&self, op: Op, a: Number, b: Number) -> Number {
         match op {
             Op::Add => a + b,
@@ -109,6 +115,7 @@ impl RamMachine {
             return Ok(true);  // end of program
         }
 
+        self.instruction_count += 1;
         let instruction = &self.program[self.instruction_pointer];
         match &instruction.op {
             // Ri ∶= c
