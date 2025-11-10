@@ -143,6 +143,9 @@ impl Menu {
                 ("  ", Style::default())
             };
 
+            // replace \\ with / for Windows paths
+            // let file = file.replace("\\", "/");
+
             let path_parts: Vec<&str> = file.split('/').collect();
             let (dir_path, filename) = if path_parts.len() > 1 {
                 (path_parts[..path_parts.len() - 1].join("/") + "/", path_parts[path_parts.len() - 1])
@@ -168,32 +171,34 @@ impl Menu {
 
     fn draw_code(&self) -> List {
         if let Some(selected_file) = self.selected_file {
-            if let Ok(contents) = std::fs::read_to_string(&self.found_files[selected_file]) {
-                let lines: Vec<String> = contents.lines().map(|line| line.to_string()).collect();
-                let max_index_width = lines.len().to_string().len();
+            if selected_file < self.found_files.len() {
+                if let Ok(contents) = std::fs::read_to_string(&self.found_files[selected_file]) {
+                    let lines: Vec<String> = contents.lines().map(|line| line.to_string()).collect();
+                    let max_index_width = lines.len().to_string().len();
 
-                let items: Vec<ListItem> = lines.iter().enumerate()
-                    .map(|(i, line)| {
-                        let index_span = Span::styled(
-                            format!("{:width$}| ", i, width = max_index_width),
-                            Style::default().fg(Color::DarkGray),
-                        );
+                    let items: Vec<ListItem> = lines.iter().enumerate()
+                        .map(|(i, line)| {
+                            let index_span = Span::styled(
+                                format!("{:width$}| ", i, width = max_index_width),
+                                Style::default().fg(Color::DarkGray),
+                            );
 
-                        let line_span = Span::styled(
-                            line.clone(),
-                            Style::default(),
-                        );
+                            let line_span = Span::styled(
+                                line.clone(),
+                                Style::default(),
+                            );
 
-                        ListItem::new(Line::from(vec![index_span, line_span]))
-                    })
-                    .collect();
+                            ListItem::new(Line::from(vec![index_span, line_span]))
+                        })
+                        .collect();
 
-                return List::new(items)
-                    .block(Block::default()
-                        .borders(Borders::ALL)
-                        .title("Code")
-                        .padding(Padding::symmetric(1, 1))
-                    )
+                    return List::new(items)
+                        .block(Block::default()
+                            .borders(Borders::ALL)
+                            .title("Code")
+                            .padding(Padding::symmetric(1, 1))
+                        )
+                }
             }
         }
 
@@ -297,6 +302,10 @@ impl Menu {
 
     fn confirm_file_selection(&mut self) -> MenuHandleResult {
         if let Some(selected) = self.selected_file {
+            if selected >= self.found_files.len() {
+                self.error = Some("No file selected".to_string());
+                return MenuHandleResult::Continue;
+            }
             match self.parse_machine(&self.found_files[selected]) {
                 Ok(machine) => {
                     self.error = None;
@@ -387,12 +396,60 @@ impl Menu {
     }
 
     fn scan_for_files(&mut self) {
-        self.found_files = walkdir::WalkDir::new(".")
+        let executable_path_result = std::env::current_exe();
+        let executable_path = match executable_path_result {
+            Ok(path) => path,
+            Err(error) => {
+                eprintln!("Failed to get current executable path: {}", error);
+                return;
+            }
+        };
+
+        let executable_directory_option = executable_path.parent();
+        let executable_directory = match executable_directory_option {
+            Some(directory) => directory.to_path_buf(),
+            None => {
+                eprintln!("Executable has no parent directory.");
+                return;
+            }
+        };
+
+        self.found_files = walkdir::WalkDir::new(executable_directory)
             .into_iter()
-            .filter_map(|entry| entry.ok())
-            .filter(|entry| entry.path().extension().map(|ext| ext == "ram").unwrap_or(false))
-            .map(|entry| entry.path().display().to_string())
+            .filter_map(|entry_result| entry_result.ok())
+            .filter(|entry| {
+                let extension = entry.path().extension();
+                match extension {
+                    Some(ext) => ext == "ram",
+                    None => false,
+                }
+            })
+            .map(|entry| {
+                // normalize Windows backslashes to forward slashes for display
+                let path_as_string = entry.path().display().to_string().replace("\\", "/");
+                path_as_string
+            })
             .collect();
+
+        if self.found_files.is_empty() {
+            self.found_files.extend(
+                walkdir::WalkDir::new(".")
+                    .into_iter()
+                    .filter_map(|entry_result| entry_result.ok())
+                    .filter(|entry| {
+                        let extension = entry.path().extension();
+                        match extension {
+                            Some(ext) => ext == "ram",
+                            None => false,
+                        }
+                    })
+                        .map(|entry| {
+                            // normalize Windows backslashes to forward slashes for display
+                            let path_as_string = entry.path().display().to_string().replace("\\", "/");
+                            path_as_string
+                        })
+            );
+        }
     }
 
     fn parse_input(&self) -> Result<Vec<i32>, String> {
